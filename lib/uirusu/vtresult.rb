@@ -115,9 +115,9 @@ module Uirusu
 			hashes = Array.new
 
 			@results.sort_by {|k| k[:scanner] }.each do |result|
-				unless hashes.include? result[:hash].downcase
+				unless hashes.include? result[:hash]
 					result_string << "#{result[:hash]}:\n"
-					hashes << result[:hash].downcase
+					hashes << result[:hash]
 				end
 				result_string << "#{result[:scanner]}: ".rjust(25) + "#{result[:result]}\n"
 			end if @results != nil
