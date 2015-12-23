@@ -37,7 +37,6 @@ module Uirusu
 end
 
 require 'json'
-require 'rest-client'
 require 'optparse'
 require 'yaml'
 

@@ -24,6 +24,7 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+require 'rest-client'
 module Uirusu
 	# Module for submiting comments to Virustotal.com resources using the
 	# Virustotal.com public API
