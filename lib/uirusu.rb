@@ -26,7 +26,7 @@
 
 module Uirusu
 	APP_NAME = "uirusu"
-	VERSION = "1.0.2"
+	VERSION = "1.0.3"
 	HOME_PAGE = "http://arxopia.github.io/uirusu"
 	AUTHOR = "Jacob Hammack"
 	EMAIL = "uirusu@arxopia.com"
@@ -37,7 +37,7 @@ module Uirusu
 end
 
 require 'json'
-require 'rest-client'
+require 'rest_client'
 require 'optparse'
 require 'yaml'
 
