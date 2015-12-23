@@ -51,5 +51,5 @@ Gem::Specification.new do |s|
 	s.extra_rdoc_files = ["README.markdown", "LICENSE", "docs/NEWS.markdown", "docs/TODO.markdown"]
 
 	s.add_runtime_dependency 'json', '~> 1.8', '>= 1.8.3'
-	s.add_runtime_dependency 'rest-client', '~> 1.6', '>= 1.6.9'
+	s.add_runtime_dependency 'rest_client', '~> 1.6', '>= 1.6.9'
 end
