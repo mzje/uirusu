@@ -1,7 +1,5 @@
 .idea
 *.gem
-Gemfile.lock
 .DS_Store
 *.gem
 .bundle/
-Gemfile.lock
