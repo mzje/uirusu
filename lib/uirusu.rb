@@ -41,6 +41,7 @@ require 'rest-client'
 require 'optparse'
 require 'yaml'
 
+require 'uirusu/contants'
 require 'uirusu/vtfile'
 require 'uirusu/vturl'
 require 'uirusu/vtcomment'
