@@ -18,12 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# Disable Coverage always on
-#require 'simplecov'
-#SimpleCov.start
-
-base = __FILE__
-$:.unshift(File.join(File.dirname(base), '../lib'))
-
-require 'minitest/autorun'
-require 'uirusu'
+module Uirusu
+	APP_NAME = "uirusu"
+	VERSION = "1.1.0"
+	HOME_PAGE = "http://hammackj.github.io/uirusu"
+	AUTHOR = "Jacob Hammack"
+	EMAIL = "jacob.hammack@hammackj.com"
+	GITHUB = "http://github.com/hammackj/uirusu"
+end

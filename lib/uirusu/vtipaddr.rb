@@ -18,12 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# Disable Coverage always on
-#require 'simplecov'
-#SimpleCov.start
+module Uirusu
+	#
+	#
+	module VTIPAddr
+		REPORT_URL = Uirusu::VT_API + "/ip-address/report"
 
-base = __FILE__
-$:.unshift(File.join(File.dirname(base), '../lib'))
+		# Searches reports by IP from Virustotal.com
+		#
+		# @param api_key Virustotal.com API key
+		# @param ip IP address to search
+		#
+		# @return [JSON] Parsed response
+		def self.query_report(api_key, ip)
+			if ip == nil
+				raise "Invalid resource, must be a valid IPv4 address"
+			end
 
-require 'minitest/autorun'
-require 'uirusu'
+			params = {
+				apikey: api_key,
+				ip: ip
+			}
+			Uirusu.query_api REPORT_URL, params
+		end
+	end
+end

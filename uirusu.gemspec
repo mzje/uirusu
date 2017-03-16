@@ -1,55 +1,53 @@
-# Copyright (c) 2012-2016 Arxopia LLC.
-# All rights reserved.
+# Copyright (c) 2010-2017 Jacob Hammack.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Arxopia LLC nor the names of its contributors
-#     	may be used to endorse or promote products derived from this software
-#     	without specific prior written permission.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL ARXOPIA LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-# OF THE POSSIBILITY OF SUCH DAMAGE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 
 base = __FILE__
 $:.unshift(File.join(File.dirname(base), 'lib'))
 
-require 'uirusu/contants'
+require 'uirusu/version'
 
 Gem::Specification.new do |s|
 	s.name = Uirusu::APP_NAME
 	s.version = Uirusu::VERSION
 	s.homepage = Uirusu::HOME_PAGE
-	s.summary = Uirusu::APP_NAME
-	s.description = "uirusu is library for interacting with Virustotal.org"
-	s.license = "BSD"
-
 	s.author = Uirusu::AUTHOR
 	s.email = Uirusu::EMAIL
 
-	s.files = Dir['[A-Z]*'] + Dir['lib/**/*'] + ['uirusu.gemspec']
-	s.default_executable = 'uirusu'
-	s.executables = ['uirusu']
-	s.require_paths	= ["lib"]
+	s.summary = Uirusu::APP_NAME
+	s.description = "uirusu is tool and REST library for interacting with Virustotal.org"
+	s.license = "MIT"
 
-	s.required_ruby_version = '>= 2.0.0'
+	s.files = Dir['[A-Z]*'] + Dir['lib/**/*'] + ['uirusu.gemspec']
+	s.default_executable = Uirusu::APP_NAME
+	s.executables = ["#{Uirusu::APP_NAME}"]
+	s.require_paths	= ["lib"]
 
 	s.has_rdoc = 'yard'
 	s.extra_rdoc_files = ["README.markdown", "LICENSE", "docs/NEWS.markdown", "docs/TODO.markdown"]
 
-	s.add_runtime_dependency 'json', '~> 1.8', '>= 1.8.3'
-	s.add_runtime_dependency 'rest-client', '~> 1.6', '>= 1.6.9'
+	s.add_runtime_dependency 'rake', '~> 12.0', '>= 12.0.0'
+	s.add_runtime_dependency 'json', '~> 2.0', '>= 2.0.3'
+	s.add_runtime_dependency 'rest-client', '~> 2.0', '>= 2.0.0'
+
+	s.add_development_dependency 'yard', '~> 0.8', '>= 0.8.7.6'
+	s.add_development_dependency 'minitest', '~> 5.0', '>= 5.10.1'
+	s.add_development_dependency 'test-unit', '~> 3.2', ">= 3.2"
 end

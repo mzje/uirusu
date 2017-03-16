@@ -1,28 +1,22 @@
-# Copyright (c) 2012-2016 Arxopia LLC.
-# All rights reserved.
+# Copyright (c) 2010-2017 Jacob Hammack.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Arxopia LLC nor the names of its contributors
-#     	may be used to endorse or promote products derived from this software
-#     	without specific prior written permission.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL ARXOPIA LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-# OF THE POSSIBILITY OF SUCH DAMAGE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 module Uirusu
 	module CLI
@@ -52,7 +46,7 @@ module Uirusu
 					@options[:timeout]  = 25
 					@options[:directory] = nil
 
-					opt = OptionParser.new do |opt|
+					opts = OptionParser.new do |opt|
 						opt.banner = "#{APP_NAME} v#{VERSION}\nJacob Hammack\n#{HOME_PAGE}\n\n"
 						opt.banner << "Usage: #{APP_NAME} <options>"
 						opt.separator('')
@@ -68,7 +62,7 @@ module Uirusu
 						end
 
 						opt.on('-f FILE', '--search-hash-file FILE', 'Searches each hash in a file of hashes on virustotal.com') do |file|
-							if File.exists?(file)
+							if File.exist?(file)
 								puts "[+] Adding file #{file}" if @options['verbose']
 								@files_of_hashes.push(file)
 							else
@@ -77,7 +71,7 @@ module Uirusu
 						end
 
 						opt.on('-u FILE', '--upload-file FILE', 'Uploads a file to virustotal.com for analysis') do |file|
-							if File.exists?(file)
+							if File.exist?(file)
 								puts "[+] Adding file #{file}" if @options['verbose']
 								@uploads.push(file)
 							else
@@ -145,26 +139,26 @@ module Uirusu
 						}
 					end
 
-				  if ARGV.length != 0
-				    opt.parse!
-				  else
-				    puts opt.to_s + "\n"
-					  exit
+					if ARGV.length != 0
+						opts.parse!
+					else
+						puts opts.to_s + "\n"
+						exit
 					end
-				rescue OptionParser::MissingArgument => m
-					puts opt.to_s + "\n"
+				rescue OptionParser::MissingArgument
+					puts opts.to_s + "\n"
 					exit
 				end
 			end
 
 			# Create config skeleton
 			#
-			def create_config (file=CONFIG_FILE)
+			def create_config file=CONFIG_FILE
 				f = File.expand_path(file)
 
-				if File.exists?(f) == false
-					File.open(f, 'w+') do |f|
-						f.write("virustotal: \n  api-key: \n  timeout: 25\n\n")
+				if File.exist?(f) == false
+					File.open(f, 'w+') do |of|
+						of.write("virustotal: \n  api-key: \n  timeout: 25\n\n")
 					end
 					puts "[*] An empty #{f} has been created. Please edit and fill in the correct values."
 				else
@@ -174,17 +168,48 @@ module Uirusu
 
 			# Loads the .uirusu config file for the api key
 			#
-			def load_config (file=CONFIG_FILE)
+			def load_config file=CONFIG_FILE
+
+				@config = nil
+
 				f = File.expand_path(file)
 
-				if File.exists?(f)
+				if File.exist?(f)
 					@config = YAML.load_file f
 				else
+					if ENV['UIRUSU_VT_API_KEY']
+						@config = {}
+						@config['virustotal'] = {}
+						@config['virustotal']['api-key'] = ENV['UIRUSU_VT_API_KEY']
+
+						if ENV['UIRUSU_VT_TIMEOUT']
+							@config['virustotal']['timeout'] = ENV['UIRUSU_VT_TIMEOUT']
+						else
+							@config['virustotal']['timeout'] = 25
+						end
+					end
+				end
+
+				if @config == nil
 					STDERR.puts "[!] #{CONFIG_FILE} does not exist. Please run #{APP_NAME} --create-config, to create it."
 					exit
 				end
 
 				@options[:timeout] = @config['virustotal']['timeout'] if @config['virustotal']['timeout'] != nil
+				@options["proxy"] = @config['virustotal']['proxy'] if @config['virustotal']['proxy'] != nil
+				@options["ssl_ca_cert"] = @config['virustotal']['ssl_ca_cert'] if @config['virustotal']['ssl_ca_cert'] != nil
+				@options["verify_ssl"] = @config['virustotal']['verify_ssl'] if @config['virustotal']['verify_ssl'] != nil
+
+				process_ssl_proxy
+			end
+
+			# Processes SSL and Proxy Related Options
+			#
+			def process_ssl_proxy
+				if @options['proxy'] != nil
+					puts "[DEBUG] Proxy enabled: #{@options['proxy']}"
+					RestClient.proxy = @options['proxy']
+				end
 			end
 
 			# Submits a file/url and waits for analysis to be complete and returns the results.
@@ -216,8 +241,8 @@ module Uirusu
 
 					if retries >= 0
 						sleep 60
-						retry
 						retries = retries - 1
+						retry
 					end
 				end
 
@@ -228,28 +253,28 @@ module Uirusu
 					# is requested to be rescanned.
 					result_array = result.is_a?(Array) ? result : [ result ]
 
-					result_array.collect do |result|
-						if result['response_code'] == 1
-							STDERR.puts "[*] Attempting to parse the results for: #{result['resource']}" if @options['verbose']
-							results = mod.query_report(@config['virustotal']['api-key'], result['resource'])
+					result_array.collect do |r|
+						if r['response_code'] == 1
+							STDERR.puts "[*] Attempting to parse the results for: #{r['resource']}" if @options['verbose']
+							results = mod.query_report(@config['virustotal']['api-key'], r['resource'])
 
 							while results['response_code'] != 1
 								STDERR.puts "[*] File has not been analyized yet, waiting 60 seconds to try again" if  @options['verbose']
 								sleep 60
-								results = mod.query_report(@config['virustotal']['api-key'], result['resource'])
+								results = mod.query_report(@config['virustotal']['api-key'], r['resource'])
 							end
 
-							return result['resource'], results
+							return r['resource'], results
 
-						elsif result['response_code'] == 0 and @options['rescan']
-							STDERR.puts "[!] Unknown Virustotal error for rescan of #{result['resource']}." if @options['verbose']
+						elsif r['response_code'] == 0 and @options['rescan']
+							STDERR.puts "[!] Unknown Virustotal error for rescan of #{r['resource']}." if @options['verbose']
 							next
 
-						elsif result['response_code'] == -1 and @options['rescan']
-							STDERR.puts "[!] Virustotal does not have a sample of #{result['resource']}." if @options['verbose']
+						elsif r['response_code'] == -1 and @options['rescan']
+							STDERR.puts "[!] Virustotal does not have a sample of #{r['resource']}." if @options['verbose']
 							next
 
-						elsif result['response_code'] == -2
+						elsif r['response_code'] == -2
 							STDERR.puts "[!] Virustotal limits exceeded, ***do not edit the timeout values.***"
 							exit(1)
 						else
@@ -260,13 +285,13 @@ module Uirusu
 					STDERR.puts "[!] An error has occurred retrieving the report. Retrying 60 seconds up #{retries} retries. #{e.message}\n" if  @options['verbose']
 					if retries >= 0
 						sleep 60
-						retry
 						retries = retries - 1
+						retry
 					end
 				end
 			end
 
-			#
+			# Main entry point for uirusu 
 			#
 			def main(args)
 				parse_options(args)
@@ -280,10 +305,6 @@ module Uirusu
 					output_method = :to_yaml
 				elsif @options['output'] == :xml
 					output_method = :to_xml
-				end
-
-				if @options['proxy'] != nil
-					RestClient.proxy = @options['proxy']
 				end
 
 				if @options[:directory] != nil

@@ -18,12 +18,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# Disable Coverage always on
-#require 'simplecov'
-#SimpleCov.start
+module Uirusu
+	#
+	#
+	module VTDomain
+		REPORT_URL = Uirusu::VT_API + "/domain/report"
 
-base = __FILE__
-$:.unshift(File.join(File.dirname(base), '../lib'))
+		# Searches reports by Domain from Virustotal.com
+		#
+		# @param api_key Virustotal.com API key
+		# @param domain domain name to search
+		#
+		# @return [JSON] Parsed response
+		def self.query_report(api_key, domain)
+			if domain == nil
+				raise "Invalid resource, must be a valid domain"
+			end
 
-require 'minitest/autorun'
-require 'uirusu'
+			params = {
+				apikey: api_key,
+				domain: domain
+			}
+			Uirusu.query_api REPORT_URL, params
+		end
+	end
+end

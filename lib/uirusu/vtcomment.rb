@@ -1,34 +1,29 @@
-# Copyright (c) 2012-2016 Arxopia LLC.
-# All rights reserved.
+# Copyright (c) 2010-2017 Jacob Hammack.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Arxopia LLC nor the names of its contributors
-#     	may be used to endorse or promote products derived from this software
-#     	without specific prior written permission.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL ARXOPIA LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-# OF THE POSSIBILITY OF SUCH DAMAGE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 module Uirusu
 	# Module for submiting comments to Virustotal.com resources using the
 	# Virustotal.com public API
 	module VTComment
 		POST_URL = Uirusu::VT_API + "/comments/put"
+		GET_URL = Uirusu::VT_API + "/comments/get"
 
 		# Submits a comment to Virustotal.com for a specific resource
 		#
@@ -38,10 +33,6 @@ module Uirusu
 		#
 		# @return [JSON] Parsed response
 		def self.post_comment(api_key, resource, comment)
-			if api_key == nil
-				raise "Invalid API Key"
-			end
-
 			if resource == nil
 				raise "Invalid resource, must be a valid url"
 			end
@@ -50,18 +41,32 @@ module Uirusu
 				raise "You must provide a comment to submit."
 			end
 
-			response = RestClient.post POST_URL, :apikey => api_key, :resource => resource, :comment => comment
+			params = {
+				apikey: api_key,
+				resource: resource,
+				comment: comment
+			}
+			Uirusu.query_api POST_URL, params
+		end
 
-			case response.code
-				when 429, 204
-					raise "Virustotal limit reached. Try again later."
-				when 403
-					raise "Invalid privileges, please check your API key."
-				when 200
-					JSON.parse(response)
-				else
-					raise "Unknown Server error."
+		# Retrieve a list of comments to Virustotal.com for a specific resource
+		#
+		# @param [String] api_key Virustotal.com API key
+		# @param [String] resource MD5/sha1/sha256/scan_id/URL to search for
+		# @param [DateTime] before A datetime token that allows you to iterate over all comments on a specific item whenever it has been commented on more than 25 times
+		#
+		# @return [JSON] Parsed response
+		def self.get_comments(api_key, resource, before=nil)
+			if resource == nil
+				raise "Invalid resource, must be a valid url"
 			end
+
+			params = {
+				apikey: api_key,
+				resource: resource
+			}
+			params[:before] = before unless before.nil?
+			Uirusu.query_api GET_URL, params
 		end
 	end
 end

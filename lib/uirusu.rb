@@ -1,37 +1,102 @@
-# Copyright (c) 2012-2016 Arxopia LLC.
-# All rights reserved.
+# Copyright (c) 2010-2017 Jacob Hammack.
 #
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Arxopia LLC nor the names of its contributors
-#     	may be used to endorse or promote products derived from this software
-#     	without specific prior written permission.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL ARXOPIA LLC BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-# OF THE POSSIBILITY OF SUCH DAMAGE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+module Uirusu
+	CONFIG_FILE = "#{Dir.home}/.uirusu"
+	VT_API = "https://www.virustotal.com/vtapi/v2"
+	RESULT_FIELDS = [ :hash, :scanner, :version, :detected, :result, :md5, :sha1, :sha256, :update, :permalink ]
+
+	protected
+	# Queries the API using RestClient and parses the response.
+	#
+	# @param url [string] URL endpoint to send the request to
+	# @param params [hash] Hash of HTTP params
+	# @param post [boolean] (optional) Specifies whether to use POST or GET
+	#
+	# @return [JSON] Parsed response
+	def self.query_api(url, params, post=false)
+		if params[:apikey] == nil
+			raise "Invalid API Key"
+		end
+
+		# TODO get options to here.
+		#resource = RestClient::Resource.new(url, :verify_ssl=>false)
+		resource = RestClient::Resource.new(url)
+
+		begin
+			if post
+				#response = RestClient.post url, **params
+				response = resource.post(params)
+			else
+				#response = RestClient.get url, params: params
+				response = resource.get(params)
+			end
+		rescue => e
+			response = e.response
+		end
+
+		self.parse_response response
+	end
+
+	# Parses the response or raises an exception accordingly.
+	#
+	# @param response The response from RestClient
+	#
+	# @return [JSON] Parsed response
+	def self.parse_response(response)
+		puts "Parse Response"
+		begin
+			case response.code
+				when 429, 204
+					raise "Virustotal limit reached. Try again later."
+				when 403
+					raise "Invalid privileges, please check your API key."
+				when 200
+					# attempt to parse it as json, otherwise return the raw response
+					# network_traffic and download return non-JSON data
+					begin
+						JSON.parse(response)
+					rescue
+						response
+					end
+				when 500
+					nil
+				else
+					raise "Unknown Server error. (#{response.code})"
+			end
+		end
+	rescue => e
+		puts e.message
+	end
+end
 
 require 'json'
 require 'rest-client'
 require 'optparse'
 require 'yaml'
 
-require 'uirusu/contants'
+require 'uirusu/version'
 require 'uirusu/vtfile'
 require 'uirusu/vturl'
+require 'uirusu/vtipaddr'
+require 'uirusu/vtdomain'
 require 'uirusu/vtcomment'
 require 'uirusu/vtresult'
 require 'uirusu/scanner'
